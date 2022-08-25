@@ -119,36 +119,31 @@ void apply_periodic_bcs(real *f) {
 }
 
 int main() {
-  //const real Re = 1000; // Reynold's Number
+  const real Re = 100; // Reynold's Number
   const real dx = 1.0/NX;
   const real dt = 2*dx*dx;
   const real rho0 = 100.0; // average density
 
-  //const real cs2 = 1.0/3.0; // Sound speed
+  const real cs2 = 1.0/3.0; // Sound speed
 
-  //const real lb_visc = dt/(dx*dx)/Re;
-  //const real tau = lb_visc/cs2 + 0.5;
-  const real tau = 0.6;
+  const real lb_visc = dt/(dx*dx)/Re;
+  const real tau = lb_visc/cs2 + 0.5;
+  //const real tau = 0.6;
   const real inv_tau = 1.0 / tau;
 
-  //const int n_frames = 100;
-  //const real total_time = n_frames * dt;
-  const real total_time = 3000*dt;
+  const real total_time = 500*dt;
   const real dt_frame = dt;
 
   //std::cerr << "Re: " << Re << std::endl;
   std::cerr << "NX: " << NX << std::endl;
-  //std::cerr << "dx: " << dx << std::endl;
-  //std::cerr << "dt: " << dt << std::endl;
+  std::cerr << "NY: " << NY << std::endl;
+  std::cerr << "dx: " << dx << std::endl;
+  std::cerr << "dt: " << dt << std::endl;
   //std::cerr << "lb_visc: " << lb_visc << std::endl;
   std::cerr << "tau: " << tau << std::endl;
   std::cerr << "total_time: " << total_time << std::endl;
   const int total_steps = int(total_time/dt);
   std::cerr << "n_steps: " << total_steps << std::endl;
-
-  //const double time_per_step = 0.111; // s per 512^2 domain on mobile RTX 3060
-  //const double time_to_completion = NX*NY/(512.0*512.0)*time_per_step*total_steps;
-  //std::cerr << "time_to_completion (s): " << time_to_completion << std::endl;
 
   unsigned char *ppm_buf = new unsigned char[NX*NY*3];
 
@@ -191,7 +186,7 @@ int main() {
 
   auto start = high_resolution_clock::now();
 
-  real t = 0.000001;
+  real t = 0.0;
   real t_until_next_frame = 0;
   real max = 0.0;
   {
