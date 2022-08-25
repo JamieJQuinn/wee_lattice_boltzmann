@@ -56,7 +56,7 @@ void calc_obstacle(real *f_bnd, const real *f, const bool *obstacle) {
     for (int j=0; j<NY; ++j) {
       if (obstacle[idx(i,j)]) {
         for(int k=0; k<NUM_SPEEDS; ++k) {
-          f_bnd[idx(i,j,k)] = f[idx(i,j,OPPOSITES[k])];
+          f_bnd[idx(i,j,k)] = f[idx(i,j,k)];
         }
       }
     }
@@ -68,7 +68,7 @@ void apply_obstacle(real *f, const real *f_bnd, const bool *obstacle) {
     for (int j=0; j<NY; ++j) {
       if (obstacle[idx(i,j)]) {
         for(int k=0; k<NUM_SPEEDS; ++k) {
-          f[idx(i,j,k)] = f_bnd[idx(i,j,k)];
+          f[idx(i,j,k)] = f_bnd[idx(i,j,OPPOSITES[k])];
         }
       }
     }
