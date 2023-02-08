@@ -153,31 +153,31 @@ int main() {
 
   // nondimensionalisation
   const real u0 = dx/dt;
-  const real rho0 = 1.0;
+  const real rho0 = 100.0;
 
-  const real Re = 100; // Reynold's Number
-  const real u_pipe = 1.0;
-  const real visc = LX*u_pipe/Re; // physical viscosity
+  //const real Re = 100; // Reynold's Number
+  //const real u_pipe = 1.0;
+  //const real visc = LX*u_pipe/Re; // physical viscosity
   const real cs2 = 1.0/3.0; // nondmin sound speed
   //const real tau = visc/cs2 + 0.5;
   const real tau = 0.6;
   //const real tau = 0.55; // nondimensional
   const real inv_tau = 1.0 / tau;
 
-  const real shear_visc = (cs2*(tau - 0.5));
-  const real Re_grid = (u_pipe/u0)/shear_visc;
+  //const real shear_visc = (cs2*(tau - 0.5));
+  //const real Re_grid = (u_pipe/u0)/shear_visc;
   //const real Re = u_pipe*LX/shear_visc;
-  const real pressure_diff = 0.01;
-  const real rho_diff = 0.01/cs2;
+  //const real pressure_diff = 0.01;
+  //const real rho_diff = 0.01/cs2;
 
-  const real total_time = 4000*dt; // s
-  const real dt_frame = 100;
+  const real total_time = 5000*dt; // s
+  const real dt_frame = 10*dt;
 
   const bool save_to_file = true;
 
-  std::cerr << "Re: " << Re << std::endl;
-  std::cerr << "Visc: " << shear_visc << std::endl;
-  std::cerr << "Initial Re_grid: " << Re_grid << std::endl;
+  //std::cerr << "Re: " << Re << std::endl;
+  //std::cerr << "Visc: " << shear_visc << std::endl;
+  //std::cerr << "Initial Re_grid: " << Re_grid << std::endl;
   //std::cerr << "lb_visc: " << lb_visc << std::endl;
 
   std::cerr << "NX: " << NX << std::endl;
@@ -202,15 +202,36 @@ int main() {
 
   // INITIAL CONDITIONS
 
+  //for(int i=0; i<NX; ++i) {
+    //for(int j=0; j<NY; ++j) {
+      //rho[idx(i,j)] = rho0;
+      ////u[idx(i,j)] = u_pipe/u0;
+      //u[idx(i,j)] = 0.001;
+      //v[idx(i,j)] = 0.0/u0;
+    //}
+  //}
+  //calc_f_eq(f, rho, u, v, cs2);
+
   for(int i=0; i<NX; ++i) {
     for(int j=0; j<NY; ++j) {
-      rho[idx(i,j)] = 1.0/rho0;
-      //u[idx(i,j)] = u_pipe/u0;
-      u[idx(i,j)] = 2.0;
-      v[idx(i,j)] = 0.0/u0;
+      for(int k=0; k<NUM_SPEEDS; ++k) {
+        f[idx(i,j,k)] = 1.0;
+      }
+    f[idx(i,j,1)] += 2.0 * (1.0+0.3*cos(2*M_PI*i/NX*4));
     }
   }
-  calc_f_eq(f, rho, u, v, cs2);
+
+  for(int i=0; i<NX; ++i) {
+    for(int j=0; j<NY; ++j) {
+      rho[idx(i,j)] = 0.0;
+      for(int k=0; k<NUM_SPEEDS; ++k) {
+        rho[idx(i,j)] += f[idx(i,j,k)];
+      }
+      for(int k=0; k<NUM_SPEEDS; ++k) {
+        f[idx(i,j,k)] *= rho0/rho[idx(i,j)];
+      }
+    }
+  }
 
   // OBSTACLE
 
