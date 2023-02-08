@@ -46,15 +46,16 @@ ppm_write(const unsigned char *buf, std::FILE *f)
     fflush(f);
 }
 
-void
-pgm_write(const unsigned char *buf, std::FILE *f)
-{
-    fprintf(f, "P5\n%d %d\n255\n", NX, NY);
-    fwrite(buf, NX, NY, f);
-    fflush(f);
-}
+// Currently unsupported (TODO refer to ppm_write for possible fix)
+//void
+//pgm_write(const unsigned char *buf, std::FILE *f)
+//{
+    //fprintf(f, "P5\n%d %d\n255\n", NX, NY);
+    //fwrite(buf, NX, NY, f);
+    //fflush(f);
+//}
 
-unsigned char to_grey(const real val) {
+unsigned long to_grey(const real val) {
   return rgb_join(val, val, val);
 }
 

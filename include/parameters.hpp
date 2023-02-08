@@ -1,8 +1,8 @@
 #pragma once
 
 const int NUM_SPEEDS = 9;
-const int NX = 256;
-const int NY = 64;
+const int NX = 400;
+const int NY = NX/4;
 
 typedef float real;
 
