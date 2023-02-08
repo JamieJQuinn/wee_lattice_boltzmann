@@ -216,8 +216,9 @@ int main() {
     for(int j=0; j<NY; ++j) {
       for(int k=0; k<NUM_SPEEDS; ++k) {
         f[idx(i,j,k)] = 1.0;
+        f[idx(i,j,k)] += 0.01*(cos(M_PI*13.13*i) + sin(M_PI*19.67*j) + cos(M_PI*M_PI*k));
       }
-    f[idx(i,j,1)] += 2.0 * (1.0+0.3*cos(2*M_PI*i/NX*4));
+    f[idx(i,j,1)] += 2.0 * (1.0+0.2*cos(2*M_PI*i/NX*4));
     }
   }
 
