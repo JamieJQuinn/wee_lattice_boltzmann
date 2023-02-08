@@ -42,7 +42,7 @@ void
 ppm_write(const unsigned char *buf, std::FILE *f)
 {
     fprintf(f, "P6\n%d %d\n255\n", NY, NX);
-    fwrite(buf, NX * 3, NY, f);
+    fwrite(buf, NY * 3, NX, f);
     fflush(f);
 }
 
