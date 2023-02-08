@@ -7,6 +7,7 @@ BUILD_DIR=build
 INCLUDE_DIR=include
 
 SOURCES=$(wildcard $(SRC_DIR)/*.cpp)
+HEADERS=$(wildcard $(INCLUDE_DIR)/*.hpp)
 OBJECTS=$(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SOURCES))
 EXECUTABLE=exe
 
@@ -16,7 +17,7 @@ all: $(BUILD_DIR)/$(EXECUTABLE)
 $(BUILD_DIR):
 	mkdir -p $@
 
-$(BUILD_DIR)/$(EXECUTABLE): $(BUILD_DIR) $(OBJECTS)
+$(BUILD_DIR)/$(EXECUTABLE): $(BUILD_DIR) $(OBJECTS) $(HEADERS)
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
