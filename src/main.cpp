@@ -183,8 +183,8 @@ int main() {
   //const real pressure_diff = 0.01;
   //const real rho_diff = 0.01/cs2;
 
-  const real total_time = 5000*dt; // s
-  const real dt_frame = 10*dt;
+  const real total_time = 20.; // s
+  const real dt_frame = total_time/500.;
 
   const bool save_to_file = true;
 
@@ -218,7 +218,7 @@ int main() {
   for(int i=0; i<NX; ++i) {
     for(int j=0; j<NY; ++j) {
       rho[idx(i,j)] = rho0;
-      u[idx(i,j)] = 0.2/u0;
+      u[idx(i,j)] = u_pipe/u0;
       v[idx(i,j)] = 0.0/u0;
     }
   }
