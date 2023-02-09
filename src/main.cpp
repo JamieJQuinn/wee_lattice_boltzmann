@@ -268,7 +268,6 @@ int main() {
     std::swap(f, temp);
     apply_f_bcs(f);
     calc_bounce_back(f_bnd, f, cylinder);
-    //apply_obstacle(f, cylinder);
 
     // Apply pressure difference in x
     //for (int j=0; j<NY; ++j) {
