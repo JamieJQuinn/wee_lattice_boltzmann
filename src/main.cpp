@@ -168,15 +168,13 @@ int main() {
 
   // nondimensionalisation
   const real u0 = dx/dt;
-  const real rho0 = 100.0;
+  const real rho0 = 1.0;
 
-  //const real Re = 100; // Reynold's Number
-  //const real u_pipe = 1.0;
-  //const real visc = LX*u_pipe/Re; // physical viscosity
+  const real Re = 10; // Reynold's Number
+  const real u_pipe = 0.2;
+  const real visc = LX*u_pipe/Re; // physical viscosity
   const real cs2 = 1.0/3.0; // nondmin sound speed
-  //const real tau = visc/cs2 + 0.5;
-  const real tau = 0.6;
-  //const real tau = 0.55; // nondimensional
+  const real tau = visc/cs2 + 0.5;
   const real inv_tau = 1.0 / tau;
 
   //const real shear_visc = (cs2*(tau - 0.5));
