@@ -157,7 +157,7 @@ int main() {
   const real rho0 = 1.0;
 
   const real Re = 10; // Reynold's Number
-  const real u_pipe = 0.2;
+  const real u_pipe = 0.0;
   const real visc = LX*u_pipe/Re; // physical viscosity
   const real cs2 = 1.0/3.0; // nondmin sound speed
   const real tau = visc/cs2 + 0.5;
@@ -288,11 +288,11 @@ int main() {
         ppm_write(ppm_buf, stdout, NX, NY);
       }
 
-      real u_max = max_vel(u,v);
-      if (u_max >= std::sqrt(2.0/3.0)) {
-        std::cout << "u_max (= " << u_max << ") breached sqrt(2/3), increase resolution to compensate" << std::endl;
-        exit(-1);
-      }
+      //real u_max = max_vel(u,v);
+      //if (u_max >= std::sqrt(2.0/3.0)) {
+        //std::cout << "u_max (= " << u_max << ") breached sqrt(2/3), increase resolution to compensate" << std::endl;
+        //exit(-1);
+      //}
     }
 
     t += dt;
