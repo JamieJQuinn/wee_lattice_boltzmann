@@ -94,16 +94,6 @@ void apply_bounce_back(real *f, const real *f_bnd, const bool *obstacle) {
   }
 }
 
-void where(real *var, const bool *obstacle, const real val) {
-  for(int i=0; i<NX; ++i) {
-    for (int j=0; j<NY; ++j) {
-      if (obstacle[idx(i,j)]) {
-        var[idx(i,j)] = val;
-      }
-    }
-  }
-}
-
 void update_macro_vars(real *rho, real *u, real *v, const real *f) {
   for(int i=0; i<NX; ++i) {
     for (int j=0; j<NY; ++j) {
@@ -177,9 +167,6 @@ int main() {
   const real tau = visc/cs2 + 0.5;
   const real inv_tau = 1.0 / tau;
 
-  //const real shear_visc = (cs2*(tau - 0.5));
-  //const real Re_grid = (u_pipe/u0)/shear_visc;
-  //const real Re = u_pipe*LX/shear_visc;
   //const real pressure_diff = 0.01;
   //const real rho_diff = 0.01/cs2;
 
@@ -188,16 +175,17 @@ int main() {
 
   const bool save_to_file = true;
 
-  //std::cerr << "Re: " << Re << std::endl;
-  //std::cerr << "Visc: " << shear_visc << std::endl;
-  //std::cerr << "Initial Re_grid: " << Re_grid << std::endl;
-  //std::cerr << "lb_visc: " << lb_visc << std::endl;
+  std::cerr << "Re: " << Re << std::endl;
+  std::cerr << "u_pipe: " << u_pipe << std::endl;
+  std::cerr << "visc: " << visc << std::endl;
+  const real Re_grid = (u_pipe/u0)/visc;
+  std::cerr << "Initial Re_grid: " << Re_grid << std::endl;
+  std::cerr << "tau: " << tau << std::endl;
 
   std::cerr << "NX: " << NX << std::endl;
   std::cerr << "NY: " << NY << std::endl;
   std::cerr << "dx: " << dx << std::endl;
   std::cerr << "dt: " << dt << std::endl;
-  std::cerr << "tau: " << tau << std::endl;
   std::cerr << "total_time: " << total_time << std::endl;
   const int total_steps = int(total_time/dt);
   std::cerr << "n_steps: " << total_steps << std::endl;
@@ -246,11 +234,9 @@ int main() {
 
   // MAIN LOOP
 
-  //real max_vel = 0.0;
   real t = 0.0;
   real t_until_next_frame = 0;
   real max = 0.0;
-  real min = 0.0;
   real last_max = 0.0;
   unsigned int counter = 0;
   unsigned int dump_counter = 0;
@@ -301,16 +287,11 @@ int main() {
         ppm_write(ppm_buf, stdout);
       }
 
-      //real Re_grid = max_vel(u,v)/(cs2*(tau - 0.5));
-      //if (Re_grid > 10) {
-        //std::cout << "Re_grid (= " << Re_grid << ") breached 10, increase resolution to compensate" << std::endl;
-        //exit(-1);
-      //}
-      //for (int i=0; i<NX; ++i)  {
-        //std::cout << int(rho[idx(i,NY/2)]) << " ";
-      //}
-      //std::cout << std::endl;
-      //std::cout << std::endl;
+      real u_max = max_vel(u,v);
+      if (u_max >= std::sqrt(2.0/3.0)) {
+        std::cout << "u_max (= " << u_max << ") breached sqrt(2/3), increase resolution to compensate" << std::endl;
+        exit(-1);
+      }
     }
 
     t += dt;
