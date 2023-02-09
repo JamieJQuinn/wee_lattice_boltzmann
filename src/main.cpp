@@ -288,9 +288,7 @@ int main() {
           real val = (v[idx(i+1,j)] - v[idx(i-1,j)])*NX - (u[idx(i,j+1)] - u[idx(i,j-1)])*NX;
           //real val = v[idx(i,j)];
           max = std::max(std::abs(val), max);
-          real grey = ((val/last_max)*4 + 1.0)*0.5;
-          //real grey = val/10.;
-          //real grey = 0.0;
+          real grey = ((val/last_max)*8 + 1.0)*0.5;
           ppm_set(ppm_buf, NX-i, j, to_grey(grey));
         }
       }
