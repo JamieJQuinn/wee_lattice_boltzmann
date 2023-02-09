@@ -39,7 +39,7 @@ ppm_get(unsigned char *buf, int x, int y)
 }
 
 void
-ppm_write(const unsigned char *buf, std::FILE *f)
+ppm_write(const unsigned char *buf, std::FILE *f, const int NX, const int NY)
 {
     fprintf(f, "P6\n%d %d\n255\n", NY, NX);
     fwrite(buf, NY * 3, NX, f);

@@ -163,6 +163,11 @@ int main() {
   const real tau = visc/cs2 + 0.5;
   const real inv_tau = 1.0 / tau;
 
+  if(tau < 0.5) {
+    std::cerr << "tau (" << tau << ") < 0.5 and is unstable. Stopping." << std::endl;
+    exit(-1);
+  }
+
   //const real pressure_diff = 0.01;
   //const real rho_diff = 0.01/cs2;
 
@@ -276,11 +281,11 @@ int main() {
       if(save_to_file) {
         std::string fname = format_counter(dump_counter) + ".ppm";
         std::FILE* fp = std::fopen(fname.c_str(), "w+");
-        ppm_write(ppm_buf, fp);
+        ppm_write(ppm_buf, fp, NX, NY);
         std::fclose(fp);
         dump_counter++;
       } else {
-        ppm_write(ppm_buf, stdout);
+        ppm_write(ppm_buf, stdout, NX, NY);
       }
 
       real u_max = max_vel(u,v);
