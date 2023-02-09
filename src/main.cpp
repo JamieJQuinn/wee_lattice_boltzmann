@@ -67,12 +67,27 @@ void collide(real *f, const real *f_eq, const real inv_tau) {
   }
 }
 
-void apply_obstacle(real *f, const bool *obstacle) {
+void calc_bounce_back(real *f_bnd, const real *f, const bool *obstacle) {
   for(int i=0; i<NX; ++i) {
     for (int j=0; j<NY; ++j) {
       if (obstacle[idx(i,j)]) {
+        for(int k=0; k<NUM_SPEEDS; ++k) {
+          f_bnd[idx(i,j,k)] = f[idx(i,j,k)];
+        }
         for(int i_bounce=0; i_bounce<4; ++i_bounce) {
-          std::swap(f[idx(i,j,BOUNCE_BACKS[i_bounce][0])], f[idx(i,j,BOUNCE_BACKS[i_bounce][1])]);
+          std::swap(f_bnd[idx(i,j,BOUNCE_BACKS[i_bounce][0])], f_bnd[idx(i,j,BOUNCE_BACKS[i_bounce][1])]);
+        }
+      }
+    }
+  }
+}
+
+void apply_bounce_back(real *f, const real *f_bnd, const bool *obstacle) {
+  for(int i=0; i<NX; ++i) {
+    for (int j=0; j<NY; ++j) {
+      if (obstacle[idx(i,j)]) {
+        for(int k=0; k<NUM_SPEEDS; ++k) {
+          f[idx(i,j,k)] = f_bnd[idx(i,j,k)];
         }
       }
     }
@@ -236,7 +251,7 @@ int main() {
 
   // OBSTACLE
 
-  int cx = NX/4; int cy = NY/2; int radius = NY/4;
+  int cx = NX/4; int cy = NY/2; int radius = NY/8;
   bool *cylinder = new bool[NX*NY];
 
   for(int i=0; i<NX; ++i) {
@@ -251,6 +266,8 @@ int main() {
   real t = 0.0;
   real t_until_next_frame = 0;
   real max = 0.0;
+  real min = 0.0;
+  real last_max = 0.0;
   unsigned int counter = 0;
   unsigned int dump_counter = 0;
 
@@ -260,10 +277,12 @@ int main() {
     update_macro_vars(rho, u, v, f);
     calc_f_eq(f_eq, rho, u, v, cs2);
     collide(f, f_eq, inv_tau);
+    apply_bounce_back(f, f_bnd, cylinder);
     stream(temp, f);
     std::swap(f, temp);
     apply_f_bcs(f);
-    apply_obstacle(f, cylinder);
+    calc_bounce_back(f_bnd, f, cylinder);
+    //apply_obstacle(f, cylinder);
 
     // Apply pressure difference in x
     //for (int j=0; j<NY; ++j) {
@@ -273,19 +292,24 @@ int main() {
       //}
     //}
 
-    // Update macro
-
     if (t > t_until_next_frame) {
       t_until_next_frame += dt_frame;
       for(int i=1; i<NX-1; ++i) {
         for(int j=1; j<NY-1; ++j) {
-          real val = (v[idx(i+1,j)] - v[idx(i-1,j)])*NX - (u[idx(i,j+1)] - u[idx(i,j-1)])*NY;
+          if(cylinder[idx(i,j)]) {
+            u[idx(i,j)] = 0.0;
+            v[idx(i,j)] = 0.0;
+          }
+          real val = (v[idx(i+1,j)] - v[idx(i-1,j)])*NX - (u[idx(i,j+1)] - u[idx(i,j-1)])*NX;
           //real val = v[idx(i,j)];
           max = std::max(std::abs(val), max);
-          real grey = ((val/max) + 1.0)/0.5;
+          real grey = ((val/last_max)*4 + 1.0)*0.5;
+          //real grey = val/10.;
+          //real grey = 0.0;
           ppm_set(ppm_buf, NX-i, j, to_grey(grey));
         }
       }
+      last_max = max;
       if(save_to_file) {
         std::string fname = format_counter(dump_counter) + ".ppm";
         std::FILE* fp = std::fopen(fname.c_str(), "w+");
@@ -298,7 +322,7 @@ int main() {
 
       //real Re_grid = max_vel(u,v)/(cs2*(tau - 0.5));
       //if (Re_grid > 10) {
-        //std::cout << "Re_grid breached 10, increase resolution to compensate" << std::endl;
+        //std::cout << "Re_grid (= " << Re_grid << ") breached 10, increase resolution to compensate" << std::endl;
         //exit(-1);
       //}
       //for (int i=0; i<NX; ++i)  {
