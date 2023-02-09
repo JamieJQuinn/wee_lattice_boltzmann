@@ -157,7 +157,7 @@ int main() {
   const real rho0 = 1.0;
 
   const real Re = 10; // Reynold's Number
-  const real u_pipe = 0.0;
+  const real u_pipe = 0.2;
   const real visc = LX*u_pipe/Re; // physical viscosity
   const real cs2 = 1.0/3.0; // nondmin sound speed
   const real tau = visc/cs2 + 0.5;
@@ -168,8 +168,8 @@ int main() {
     exit(-1);
   }
 
-  //const real pressure_diff = 0.01;
-  //const real rho_diff = 0.01/cs2;
+  const real pressure_diff = 0.00;
+  const real rho_diff = pressure_diff/cs2;
 
   const real total_time = 20.; // s
   const real dt_frame = total_time/500.;
@@ -224,7 +224,7 @@ int main() {
 
   // OBSTACLE
 
-  int cx = NX/4; int cy = NY/2; int radius = NY/8;
+  int cx = NX/8; int cy = NY/2; int radius = NY/16;
   bool *cylinder = new bool[NX*NY];
 
   for(int i=0; i<NX; ++i) {
@@ -255,12 +255,12 @@ int main() {
     calc_bounce_back(f_bnd, f, cylinder);
 
     // Apply pressure difference in x
-    //for (int j=0; j<NY; ++j) {
-      //for(int k=0; k<NUM_SPEEDS; ++k) {
-        //f[idx(0,j,k)] += calc_f_eq_kernel(rho[idx(0,j)] + rho_diff, u[idx(0,j)], v[idx(0,j)], k) - f_eq[idx(0,j,k)];
-        //f[idx(NX-1,j,k)] += calc_f_eq_kernel(rho[idx(NX-1,j)] + rho_diff, u[idx(NX-1,j)], v[idx(NX-1,j)], k) - f_eq[idx(NX-1,j,k)];
-      //}
-    //}
+    for (int j=0; j<NY; ++j) {
+      for(int k=0; k<NUM_SPEEDS; ++k) {
+        f[idx(0,j,k)] += calc_f_eq_kernel(rho[idx(0,j)] + rho_diff, u[idx(0,j)], v[idx(0,j)], k, cs2) - f_eq[idx(0,j,k)];
+        f[idx(NX-1,j,k)] += calc_f_eq_kernel(rho[idx(NX-1,j)], u[idx(NX-1,j)], v[idx(NX-1,j)], k, cs2) - f_eq[idx(NX-1,j,k)];
+      }
+    }
 
     if (t > t_until_next_frame) {
       t_until_next_frame += dt_frame;
@@ -288,11 +288,11 @@ int main() {
         ppm_write(ppm_buf, stdout, NX, NY);
       }
 
-      //real u_max = max_vel(u,v);
-      //if (u_max >= std::sqrt(2.0/3.0)) {
-        //std::cout << "u_max (= " << u_max << ") breached sqrt(2/3), increase resolution to compensate" << std::endl;
-        //exit(-1);
-      //}
+      real u_max = max_vel(u,v);
+      if (u_max >= std::sqrt(2.0/3.0)) {
+        std::cout << "u_max (= " << u_max << ") breached sqrt(2/3), increase resolution to compensate" << std::endl;
+        exit(-1);
+      }
     }
 
     t += dt;
