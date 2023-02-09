@@ -9,19 +9,15 @@ using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 
-real WEIGHTS[NUM_SPEEDS] = {
+const real WEIGHTS[NUM_SPEEDS] = {
   4.0 / 9.0,
   1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0,
   1.0 / 36.0, 1.0 / 36.0, 1.0 / 36.0, 1.0 / 36.0};
-int C_VECS[NUM_SPEEDS][2] = {
+const int C_VECS[NUM_SPEEDS][2] = {
   {0, 0}, 
   {1, 0}, {0, 1}, {-1, 0}, {0, -1},
   {1, 1}, {-1, 1}, {-1, -1}, {1, -1}};
-int OPPOSITES[NUM_SPEEDS] = {
-  0,
-  3, 4, 1, 2,
-  7, 8, 5, 6};
-int BOUNCE_BACKS[4][2] = {
+const int BOUNCE_BACKS[4][2] = {
   {1, 3}, {2, 4}, {5, 7}, {6, 8}
 };
 
@@ -29,7 +25,7 @@ inline int idx (const int i, const int j, const int k) {
   return idx(i,j)*NUM_SPEEDS + k;
 }
 
-real calc_f_eq_kernel(const real rho, const real u, const real v, int k, const real cs2) {
+inline real calc_f_eq_kernel(const real rho, const real u, const real v, int k, const real cs2) {
   real c_dot_u = C_VECS[k][0] * u + C_VECS[k][1] * v;
   real u2 = u*u + v*v;
   return WEIGHTS[k] * rho * (1.0 + c_dot_u/cs2 + 0.5*c_dot_u*c_dot_u/(cs2*cs2) - 0.5*u2/cs2);
