@@ -217,34 +217,20 @@ int main() {
 
   // INITIAL CONDITIONS
 
-  //for(int i=0; i<NX; ++i) {
-    //for(int j=0; j<NY; ++j) {
-      //rho[idx(i,j)] = rho0;
-      ////u[idx(i,j)] = u_pipe/u0;
-      //u[idx(i,j)] = 0.001;
-      //v[idx(i,j)] = 0.0/u0;
-    //}
-  //}
-  //calc_f_eq(f, rho, u, v, cs2);
-
   for(int i=0; i<NX; ++i) {
     for(int j=0; j<NY; ++j) {
-      for(int k=0; k<NUM_SPEEDS; ++k) {
-        f[idx(i,j,k)] = 1.0;
-        f[idx(i,j,k)] += 0.01*(cos(M_PI*13.13*i) + sin(M_PI*19.67*j) + cos(M_PI*M_PI*k));
-      }
-    f[idx(i,j,1)] += 2.0 * (1.0+0.2*cos(2*M_PI*i/NX*4));
+      rho[idx(i,j)] = rho0;
+      u[idx(i,j)] = 0.2/u0;
+      v[idx(i,j)] = 0.0/u0;
     }
   }
+  calc_f_eq(f, rho, u, v, cs2);
 
+  // Add some jiggle
   for(int i=0; i<NX; ++i) {
     for(int j=0; j<NY; ++j) {
-      rho[idx(i,j)] = 0.0;
       for(int k=0; k<NUM_SPEEDS; ++k) {
-        rho[idx(i,j)] += f[idx(i,j,k)];
-      }
-      for(int k=0; k<NUM_SPEEDS; ++k) {
-        f[idx(i,j,k)] *= rho0/rho[idx(i,j)];
+        f[idx(i,j,k)] += 0.01*(cos(M_PI*13.13*i) + sin(M_PI*19.67*j) + cos(M_PI*M_PI*k));
       }
     }
   }
