@@ -240,7 +240,7 @@ int main() {
 
   for(int i=0; i<NX; ++i) {
     for (int j=0; j<NY; ++j) {
-      cylinder[idx(i,j)] = (pow(i-cx, 2) + pow(j-cy,2) <= pow(radius, 2));
+      cylinder[idx(i,j)] = (pow(i-cx, 2) + pow(j-cy,2) < pow(radius, 2));
     }
   }
 
