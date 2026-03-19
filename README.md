@@ -1,3 +1,9 @@
+## Building & Running
+
+`make` builds the code.
+
+`./build/exe` runs the simulation, dumping all output images into the current directory.
+
 ## Equations of motion
 
 From [A literate lattice Boltzmann code](http://literatelb.org/#org0ae0da8):
