@@ -4,6 +4,8 @@
 #include "parameters.hpp"
 #include "rendering.hpp"
 
+inline int idx (const int i, const int j) {return i*NY + j;}
+
 void
 rgb_split(unsigned long c, float *r, float *g, float *b)
 {
@@ -44,31 +46,4 @@ ppm_write(const unsigned char *buf, std::FILE *f, const int NX, const int NY)
     fprintf(f, "P6\n%d %d\n255\n", NY, NX);
     fwrite(buf, NY * 3, NX, f);
     fflush(f);
-}
-
-// Currently unsupported (TODO refer to ppm_write for possible fix)
-//void
-//pgm_write(const unsigned char *buf, std::FILE *f)
-//{
-    //fprintf(f, "P5\n%d %d\n255\n", NX, NY);
-    //fwrite(buf, NX, NY, f);
-    //fflush(f);
-//}
-
-unsigned long to_grey(const real val) {
-  return rgb_join(val, val, val);
-}
-
-
-void
-frame(const real *var)
-{
-    //static unsigned char buf[NX * NY * 3];
-    //std::memset(buf, 0, sizeof(buf));
-    //for(int i=0; i<NX; ++i) {
-      //for(int j=0; j<NY; ++j) {
-        //ppm_set(buf,i,j,to_grey(var[idx(i,j)]/0.57));
-      //}
-    //}
-    //ppm_write(buf, stdout);
 }

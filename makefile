@@ -1,7 +1,6 @@
-CC=g++
-CFLAGS=-c -I$(INCLUDE_DIR) --std=c++14
-CFLAGS_OPTIMISATIONS=-O3 -DNDEBUG
-LDFLAGS=
+CC=clang++
+CFLAGS=-std=c++17 -O3 -fopenmp -march=native -DNDEBUG -I$(INCLUDE_DIR)
+LDFLAGS=-fopenmp
 SRC_DIR=src
 BUILD_DIR=build
 INCLUDE_DIR=include
@@ -14,6 +13,10 @@ EXECUTABLE=exe
 .PHONY: all
 all: $(BUILD_DIR)/$(EXECUTABLE)
 
+# .PHONY: flags
+# flags:
+# 	echo $(CFLAGS) > compile_flags.txt
+
 $(BUILD_DIR):
 	mkdir -p $@
 
@@ -21,7 +24,7 @@ $(BUILD_DIR)/$(EXECUTABLE): $(BUILD_DIR) $(OBJECTS) $(HEADERS)
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 .PHONY: clean
 clean:

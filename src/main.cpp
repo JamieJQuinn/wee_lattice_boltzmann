@@ -1,7 +1,7 @@
-#include <cstring>
 #include <iostream>
 #include <chrono>
 #include <cmath>
+
 #include "parameters.hpp"
 #include "rendering.hpp"
 
@@ -9,21 +9,8 @@ using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 
-const real WEIGHTS[NUM_SPEEDS] = {
-  4.0 / 9.0,
-  1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0,
-  1.0 / 36.0, 1.0 / 36.0, 1.0 / 36.0, 1.0 / 36.0};
-const int C_VECS[NUM_SPEEDS][2] = {
-  {0, 0}, 
-  {1, 0}, {0, 1}, {-1, 0}, {0, -1},
-  {1, 1}, {-1, 1}, {-1, -1}, {1, -1}};
-const int BOUNCE_BACKS[4][2] = {
-  {1, 3}, {2, 4}, {5, 7}, {6, 8}
-};
-
-inline int idx (const int i, const int j, const int k) {
-  return idx(i,j)*NUM_SPEEDS + k;
-}
+inline int idx (const int i, const int j) {return i*NY + j;}
+inline int idx (const int i, const int j, const int k) {return idx(i,j)*NUM_SPEEDS + k;}
 
 inline real calc_f_eq_kernel(const real rho, const real u, const real v, int k, const real cs2) {
   real c_dot_u = C_VECS[k][0] * u + C_VECS[k][1] * v;
@@ -31,7 +18,8 @@ inline real calc_f_eq_kernel(const real rho, const real u, const real v, int k, 
   return WEIGHTS[k] * rho * (1.0 + c_dot_u/cs2 + 0.5*c_dot_u*c_dot_u/(cs2*cs2) - 0.5*u2/cs2);
 }
 
-void calc_f_eq(real *f_eq, const real *rho, const real *u, const real *v, const real cs2) {
+void calc_f_eq(real* f_eq, const real* rho, const real* u, const real* v, const real cs2) {
+#pragma omp parallel for collapse(3)
   for(int i=0; i<NX; ++i) {
     for (int j=0; j<NY; ++j) {
       for(int k=0; k<NUM_SPEEDS; ++k) {
@@ -41,7 +29,8 @@ void calc_f_eq(real *f_eq, const real *rho, const real *u, const real *v, const 
   }
 }
 
-void stream(real *f_new, const real *f_old) {
+void stream(real* f_new, const real* f_old) {
+#pragma omp parallel for collapse(3)
   for(int i=1; i<NX-1; ++i) {
     for (int j=1; j<NY-1; ++j) {
       for(int k=0; k<NUM_SPEEDS; ++k) {
@@ -53,7 +42,8 @@ void stream(real *f_new, const real *f_old) {
   }
 }
 
-void collide(real *f, const real *f_eq, const real inv_tau) {
+void collide(real* f, const real* f_eq, const real inv_tau) {
+#pragma omp parallel for collapse(3)
   for(int i=0; i<NX; ++i) {
     for (int j=0; j<NY; ++j) {
       for(int k=0; k<NUM_SPEEDS; ++k) {
@@ -63,7 +53,8 @@ void collide(real *f, const real *f_eq, const real inv_tau) {
   }
 }
 
-void calc_bounce_back(real *f_bnd, const real *f, const bool *obstacle) {
+void calc_bounce_back(real* f_bnd, const real* f, const bool *obstacle) {
+#pragma omp parallel for collapse(2)
   for(int i=0; i<NX; ++i) {
     for (int j=0; j<NY; ++j) {
       if (obstacle[idx(i,j)]) {
@@ -78,7 +69,8 @@ void calc_bounce_back(real *f_bnd, const real *f, const bool *obstacle) {
   }
 }
 
-void apply_bounce_back(real *f, const real *f_bnd, const bool *obstacle) {
+void apply_bounce_back(real* f, const real* f_bnd, const bool *obstacle) {
+#pragma omp parallel for collapse(2)
   for(int i=0; i<NX; ++i) {
     for (int j=0; j<NY; ++j) {
       if (obstacle[idx(i,j)]) {
@@ -90,7 +82,8 @@ void apply_bounce_back(real *f, const real *f_bnd, const bool *obstacle) {
   }
 }
 
-void update_macro_vars(real *rho, real *u, real *v, const real *f) {
+void update_macro_vars(real* rho, real* u, real* v, const real* f) {
+#pragma omp parallel for collapse(2)
   for(int i=0; i<NX; ++i) {
     for (int j=0; j<NY; ++j) {
       rho[idx(i,j)] = 0.0;
@@ -147,49 +140,25 @@ real max_vel(const real *u, const real *v) {
 }
 
 int main() {
-  const real LX = 1.0; // m
-  const real dx = LX/NX; // m
-  //const real dt = dx*dx; // diffusive scaling (s)
-  const real dt = dx; // acoustic scaling (s)
-
-  // nondimensionalisation
-  const real u0 = dx/dt;
-  const real rho0 = 1.0;
-
-  const real Re = 10; // Reynold's Number
-  const real u_pipe = 0.2;
-  const real visc = LX*u_pipe/Re; // physical viscosity
-  const real cs2 = 1.0/3.0; // nondmin sound speed
-  const real tau = visc/cs2 + 0.5;
-  const real inv_tau = 1.0 / tau;
-
   if(tau < 0.5) {
-    std::cerr << "tau (" << tau << ") < 0.5 and is unstable. Stopping." << std::endl;
+    std::cout << "tau (" << tau << ") < 0.5 and is unstable. Stopping." << std::endl;
     exit(-1);
   }
 
-  const real pressure_diff = 0.00;
-  const real rho_diff = pressure_diff/cs2;
-
-  const real total_time = 20.; // s
-  const real dt_frame = total_time/500.;
-
-  const bool save_to_file = true;
-
-  std::cerr << "Re: " << Re << std::endl;
-  std::cerr << "u_pipe: " << u_pipe << std::endl;
-  std::cerr << "visc: " << visc << std::endl;
+  std::cout << "Re: " << Re << std::endl;
+  std::cout << "u_pipe: " << u_pipe << std::endl;
+  std::cout << "visc: " << visc << std::endl;
   const real Re_grid = (u_pipe/u0)/visc;
-  std::cerr << "Initial Re_grid: " << Re_grid << std::endl;
-  std::cerr << "tau: " << tau << std::endl;
+  std::cout << "Initial Re_grid: " << Re_grid << std::endl;
+  std::cout << "tau: " << tau << std::endl;
 
-  std::cerr << "NX: " << NX << std::endl;
-  std::cerr << "NY: " << NY << std::endl;
-  std::cerr << "dx: " << dx << std::endl;
-  std::cerr << "dt: " << dt << std::endl;
-  std::cerr << "total_time: " << total_time << std::endl;
+  std::cout << "NX: " << NX << std::endl;
+  std::cout << "NY: " << NY << std::endl;
+  std::cout << "dx: " << dx << std::endl;
+  std::cout << "dt: " << dt << std::endl;
+  std::cout << "total_time: " << total_time << std::endl;
   const int total_steps = int(total_time/dt);
-  std::cerr << "n_steps: " << total_steps << std::endl;
+  std::cout << "n_steps: " << total_steps << std::endl;
 
   unsigned char *ppm_buf = new unsigned char[NX*NY*3];
 
@@ -222,7 +191,7 @@ int main() {
     }
   }
 
-  // OBSTACLE
+  // DEFINE OBSTACLE
 
   int cx = NX/8; int cy = NY/2; int radius = NY/16;
   bool *cylinder = new bool[NX*NY];
@@ -274,7 +243,7 @@ int main() {
           //real val = v[idx(i,j)];
           max = std::max(std::abs(val), max);
           real grey = ((val/last_max)*8 + 1.0)*0.5;
-          ppm_set(ppm_buf, NX-i, j, to_grey(grey));
+          ppm_set(ppm_buf, NX-i, j, rgb_join(grey, grey, grey));
         }
       }
       last_max = max;
@@ -302,9 +271,9 @@ int main() {
   auto stop = high_resolution_clock::now();
   auto duration = duration_cast<milliseconds>(stop - start).count();
 
-  std::cerr << "Time : " << duration << " ms" << std::endl;
-  std::cerr << "FPS : " << float(total_steps)/(duration/1000.0) << std::endl;
-  std::cerr << "time per step : " << duration/float(total_steps) << " ms" << std::endl;
+  std::cout << "Time : " << duration << " ms" << std::endl;
+  std::cout << "FPS : " << float(total_steps)/(duration/1000.0) << std::endl;
+  std::cout << "time per step : " << duration/float(total_steps) << " ms" << std::endl;
 
   return 0;
 }
